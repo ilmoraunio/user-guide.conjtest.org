@@ -1,0 +1,8 @@
+[[installation]]
+== Installation
+
+Download the binary from the
+https://github.com/ilmoraunio/conjtest/releases[latest release].
+
+Install the binary under `/usr/local/bin` and run `sudo chmod +x
+/usr/local/bin/conjtest` on the binary.

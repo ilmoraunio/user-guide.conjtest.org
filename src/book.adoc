@@ -1,0 +1,36 @@
+Conjtest user guide
+===================
+Ilmo Raunio
+:doctype: book
+:description: Documentation on conjtest
+:source-highlighter: rouge
+:icons: font
+:toc: left
+:toclevels: 2
+:toc-collapsable:
+:sectlinks:
+
+// - Introduction
+// - Installation ✅
+// - Getting started ✅
+// - Policies (principle: input -> output, deny, warn, allow, hard name conventions for policies)
+//   - Returning errors from policies (returning true, "string" or ["foo" "bar"])
+// - Running policies (`conjtest test`, `--policy`, `--parser`, exit code semantics)
+// - Supported parsers (list supported filetypes, mention keyword logic,
+// highlight ordering of parsers: opt first for clojure parsing, then go
+// parsing)
+// - Examples (link to examples)
+// - Supported runtime libraries
+// - Local file requires
+// - Fail on warn
+// - Use via babashka
+// - Debugging (`--trace` (stack trace example here), `conjtest parse`, `conjtest repl`)
+// - Interop (`--go-parsers-only`)
+
+include::installation.adoc[]
+
+include::getting_started.adoc[]
+
+include::contributing.adoc[]
+
+include::license.adoc[]

@@ -1,0 +1,8 @@
+**/*.html
+**/*.pdf
+gh-pages/
+!src/docinfo*.html
+.DS_Store
+/.clj-kondo/.cache
+.lsp
+.portal

@@ -1,0 +1,84 @@
+[[getting_started]]
+== Getting started
+
+Here's how to get started with a simple deny-based policy.
+
+First, let's add an nginx-based Kubernetes ingress definition defined using
+YAML.
+
+[source,bash]
+----
+cat <<EOF > my-ingress.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+  name: service-a
+  namespace: foobar
+EOF
+----
+
+Now add a policy called `my-rules.clj` containing a rule to fail if the field
+`nginx.ingress.kubernetes.io/cors-allow-origin` contains a `"*"`.
+
+[source,bash]
+----
+cat <<EOF > my-rules.clj
+(ns my-rules)
+
+(defn deny-*-cors
+  [input]
+  (when (= "*" (get-in input
+                       [:metadata
+                        :annotations
+                        :nginx.ingress.kubernetes.io/cors-allow-origin]))
+    "CORS is too permissive"))
+EOF
+----
+
+Putting these together, you should expect to see conjtest fail due to the
+forbidden asterisk `"*"`.
+
+[source,bash]
+----
+$ conjtest test my-ingress.yaml -p my-rules.clj
+FAIL - my-ingress.yaml - deny-*-cors - CORS is too permissive
+
+1 tests, 0 passed, 0 warnings, 1 failures
+
+$ echo $?
+1
+----
+
+Once you've seen your policy fail, it's time to make it pass.
+
+[source,bash]
+----
+cat <<EOF > my-ingress.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-origin: 'https://safe.site.com'
+  name: service-a
+  namespace: foobar
+EOF
+----
+
+Your policy should now pass without failure.
+
+[source,bash]
+----
+$ conjtest test my-ingress.yaml -p my-rules.clj
+1 tests, 1 passed, 0 warnings, 0 failures
+
+$ echo $?
+0
+----
+
+And that's how you create a policy! Your next steps can be to attach the run
+commands as part of your CI pipeline or to your githooks and, of course, to
+create more policies.
