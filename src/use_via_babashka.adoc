@@ -1,0 +1,13 @@
+[[use_via_babashka]]
+== Use via Babashka
+
+Conjtest supports usage via Babashka directly with
+https://github.com/ilmoraunio/conjtest-clj[conjtest-clj] library and
+https://github.com/ilmoraunio/pod-ilmoraunio-conjtest[pod-ilmoraunio-conjtest].
+
+This can be useful if you need to use your own libraries, parser, or reporting
+mechanism.
+
+Simple
+https://github.com/ilmoraunio/conjtest/tree/main/demo/external_use[example]
+using babashka tasks.

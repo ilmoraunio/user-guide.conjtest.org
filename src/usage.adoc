@@ -1,0 +1,261 @@
+[[usage]]
+== Usage
+
+=== Policies
+
+Policies are single-arity functions which must return either of the following
+values:
+
+- `true` (or truthy)
+- `false` (or falsey)
+- string, eg. `"error message"`
+- a collection, eg. `["error message 1" "error message 2"]`
+
+Returning a string or a collection from the function will always result in a
+policy failure. For truthy/falsey values, the outcome depends on the policy's
+type.
+
+For *deny policies*, function must return `false` (or falsey) to succeed.  For
+*allow policies*, function must return `true` (or truthy) to succeed.  For
+*warn policies*, function must return `false` (or falsey) to succeed.
+
+In `conjtest`, policy (function) names must start with either `deny-`,
+`allow-`, or `warn-`.
+
+When `conjtest` is provided a policy file, it will gather every public var in
+that file starting with `deny-`, `allow-`, or `warn-` and evaluate them.
+Functions using this naming conventions will be evaluated, functions not using
+this convention will be filtered out and not evaluated.
+
+[cols="1,1,1"]
+|===
+|Policy type|Function name (begins with)|Policy success
+
+|Deny
+|`deny-`
+|`false` or falsey
+
+|Allow
+|`allow-`
+|`true` or truthy
+
+|Warn
+|`warn-`
+|`false` or falsey
+|===
+
+.Deny policy example
+[source, clojure]
+----
+(ns policy)
+
+(defn- deployment?
+  [input]
+  (= "Deployment" (:kind input)))
+
+(defn deny-should-not-run-as-root
+  [input]
+  (let [name (-> input :metadata :name)]
+    (when (and (deployment? input)
+               (not (true? (get-in input
+                                   [:spec
+                                    :template
+                                    :spec
+                                    :securityContext
+                                    :runAsNonRoot]))))
+      (format "Containers must not run as root in Deployment \"%s\"" name))))
+----
+
+.Allow policy example
+[source, clojure]
+----
+(ns policy)
+
+(defn is-allowlisted?
+  [allowlist x]
+  (assert (coll? allowlist))
+  (some? ((into #{} allowlist) x)))
+
+(def ^:private allowlist ["hello-kubernetes"])
+
+(defn allow-allowlisted-selector-only
+  [input]
+  (and (= "Service" (:kind input))
+       (is-allowlisted? allowlist (get-in input [:spec :selector :app]))))
+----
+
+.Warn policy example
+[source, clojure]
+----
+(ns policy)
+
+(defn warn-when-not-port-80
+  [input]
+  (and (= "v1" (:apiVersion input))
+       (= "Service" (:kind input))
+       (not= 80 (-> input :spec :ports first :port))))
+----
+
+=== Policy metadata
+
+You can define policy name, top-level error message (if the rule otherwise
+fails), and the policy type using metadata.
+
+[cols="1,1,1"]
+|===
+|Supported keys|Supported values|Superseded by
+
+| `rule/type` | `:deny`, `:allow`, `:warn` | Function name (begins with `deny-`, `allow-`, or `warn-`)
+| `rule/name` | string or keyword | Function name
+| `rule/message` | string | Function returns an error message
+|===
+
+.Policy with custom name and error message
+[source, clojure]
+----
+(defn ^{:rule/type :deny
+        :rule/message "port should be 80"}
+      differently-named-deny-rule
+  [input]
+  (and (= "v1" (:apiVersion input))
+       (= "Service" (:kind input))
+       (not= 80 (-> input :spec :ports first :port))))
+----
+
+=== Running policies
+
+Once you have a configuration file and a policy, you can perform policy testing
+using the following command syntax:
+
+[source, bash]
+----
+conjtest test <configuration_file> [configuration_file [...]] [flags]
+----
+
+You can provide file(s) directly, use globs, or directories for both
+configuration files and policies.
+
+.Basic example
+[source, bash]
+----
+conjtest test infra/deployment.yaml --policy policies/policy.clj
+----
+
+.Multiple files
+[source, bash]
+----
+conjtest test infra/deployment.yaml infra/my-other-deployment.yml --policy policies/policy.clj --policy other_policies/another-policy.clj
+----
+
+.Glob support
+[source, bash]
+----
+conjtest test infra/**/*.{yaml,yml} --policy **/*.clj
+----
+
+.Directories support
+[source, bash]
+----
+conjtest test infra/ --policy policies/
+----
+
+=== Exit codes
+
+`conjtest test` command normally returns exit code 0 on success. Failing deny
+or allow policies result in exit code 1.  Warn policies will result in exit
+code 0.
+
+=== --fail-on-warn
+
+If the option `--fail-on-warn` is provided to the `conjtest test` command, then
+failing warn policies result in error code 1. Failing deny policies will result
+in exit code 2.
+
+=== Supported runtime libraries
+
+Policies are run using Babashka/Clojure runtime. Conjtest runs policies inside
+a https://github.com/babashka/sci[SCI] sandbox which places limitations on code
+that can be run.
+
+Currently, **only** the following namespaces (and their contents) can be
+required:
+
+- `clojure.core`
+- `clojure.set`
+- `clojure.edn`
+- `clojure.repl`
+- `clojure.string`
+- `clojure.walk`
+- `clojure.template`
+- Locally defined namespaces (see: xref:_local_file_requires[])
+
+=== Local file requires
+
+It's possible to require your locally defined namespaces by passing a
+configuration file via `--config` and `:paths` key.
+
+.CLI invocation example
+[source, bash]
+----
+conjtest test infra/deployment.yaml --policy policies/policy.clj --config conjtest.edn
+----
+
+.conjtest.edn
+[source, clojure]
+----
+{:paths ["policies/"]}
+----
+
+Conjtest will will recursively include namespaces of all `.clj`, `.cljc`, and
+`.bb` files.
+
+Now you can require any local Clojure namespaces.
+
+.Policy example using local require
+[source, clojure]
+----
+(ns conjtest.example-local-require
+  (:require [conjtest.util.core :as util]))
+
+(def ^:private allowlist ["hello-kubernetes"])
+
+(defn allow-allowlisted-selector-only
+  [input]
+  (and (= "Service" (:kind input))
+       (util/is-allowlisted? allowlist (get-in input [:spec :selector :app]))))
+----
+
+=== Parsing configuration files
+
+Conjtest uses multiple parsers under-the-hood to provide wide support for
+different configuration file formats, using either Clojure-based parsers or
+Go-based (ie. https://conftest.dev[Conftest]-based) parsers.
+
+Conjtest will try to parse using Clojure-based parsers if a suitable parser can
+be found, otherwise it will use a Go-based parser. If a suitable parser cannot
+be found, exit code 1 is returned.
+
+Conjtest supports returning keys using keywords for Clojure-based parsers. For
+Go-based parsers, keys are currently always returned as a string.
+
+If necessary, you can force Conjtest to use Go-based parsers via
+`--go-parsers-only`.
+
+==== Supported configuration file formats
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/cue[CUE]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/dockerfile[Dockerfile]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/dotenv[Dotenv]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/edn[EDN]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/hcl1[HCL1]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/hcl2[HCL2]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/hocon[HOCON]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/ignore[Ignore]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/ini[INI]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/json[JSON]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/jsonnet[Jsonnet]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/properties[Properties]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/spdx[Spdx]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/toml[TOML]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/vcl[VCL]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/xml[XML]
+- https://github.com/ilmoraunio/conjtest/tree/main/examples/yaml[YAML]

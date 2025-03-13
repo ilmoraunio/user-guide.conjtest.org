@@ -1,0 +1,116 @@
+[[debugging]]
+== Debugging
+
+Conjtest supports multiple ways to develop & debug policies.
+
+=== Parsing files
+
+To debug configuration file contents, you can use `conjtest parse`.
+
+.Example
+[source, clojure]
+----
+$ conjtest parse examples/yaml/kubernetes/deployment.yaml
+{:apiVersion "apps/v1",
+ :kind "Deployment",
+ :metadata
+ {:name "hello-kubernetes",
+  :labels
+  #:app.kubernetes.io{:name "mysql",
+                      :version "5.7.21",
+                      :component "database",
+                      :part-of "wordpress",
+                      :managed-by "helm"}},
+ :spec
+ {:replicas 3,
+  :selector {:matchLabels {:app "hello-kubernetes"}},
+  :template
+  {:metadata {:labels {:app "hello-kubernetes"}},
+   :spec
+   {:containers
+    ({:name "hello-kubernetes",
+      :image "paulbouwer/hello-kubernetes:1.5",
+      :ports ({:containerPort 8080})})}}}}
+----
+
+You can copy-paste this output and pass it as an argument to your policy
+function.
+
+=== --trace
+
+If you need to understand policy behavior under-the-hood, you can use the
+`--trace` flag to debug the policy more closely.
+
+[source, bash]
+----
+$ conjtest test test-resources/invalid.yaml --policy test-resources/conjtest/example_deny_rules.clj --trace
+
+Policy argument(s): test-resources/conjtest/example_deny_rules.clj
+Filenames parsed: test-resources/invalid.yaml
+Policies used: test-resources/conjtest/example_deny_rules.clj
+TRACE:
+---
+Rule name: deny-my-absolute-bare-rule
+Input file: test-resources/invalid.yaml
+Parsed input: {:apiVersion "v1",
+ :kind "Service",
+ :metadata {:name "hello-kubernetes"},
+ :spec
+ {:type "LoadBalancer",
+  :ports ({:port 81, :targetPort 8080}),
+  :selector {:app "bad-hello-kubernetes"}}}
+Result: true
+
+...
+...
+...
+
+FAIL - test-resources/invalid.yaml - deny-my-absolute-bare-rule - :conjtest/rule-validation-failed
+FAIL - test-resources/invalid.yaml - deny-my-bare-rule - port should be 80
+FAIL - test-resources/invalid.yaml - deny-my-rule - port should be 80
+FAIL - test-resources/invalid.yaml - differently-named-deny-rule - port should be 80
+
+4 tests, 0 passed, 0 warnings, 4 failures
+----
+
+=== REPL
+
+It's possible to connect to a network REPL using
+https://github.com/babashka/babashka.nrepl[`babashka.nrepl.server`].
+
+.CLI example
+[source, bash]
+----
+$ conjtest repl
+Started nREPL server at 0.0.0.0:1667
+----
+
+Executing this command will open up an nREPL connection to port 1667.
+
+This allows you to develop your policy within the SCI sandbox.
+
+.REPL example
+[source, clojure]
+----
+$ clj -Sdeps '{:deps {nrepl/nrepl {:mvn/version "0.5.3"}}}' -m nrepl.cmdline -c --host 127.0.0.1 --port 1667
+...
+user=> (require '[pod-ilmoraunio-conjtest.api :as api])
+nil
+user=> (defn deny-my-policy
+         [input]
+         (when ((into #{} (:paths input)) "evil-dir")
+           "evil-dir found!"))
+#'user/deny-my-policy
+user=> (deny-my-policy (first (vals (api/parse "deps.edn"))))
+nil
+user=> (deny-my-policy (update (first (vals (api/parse "deps.edn")))
+                               :paths
+                               conj
+                               "evil-dir"))
+"evil-dir found!"
+user=> (conjtest/test! [(update (first (vals (api/parse "deps.edn")))
+                                :paths
+                                conj
+                                "evil-dir")] #'deny-my-policy)
+{:summary {:total 1, :passed 0, :warnings 0, :failures 1}, :summary-report "1 tests, 0 passed, 0 warnings, 1 failures\n", :result ({:message "evil-dir found!", :name "deny-my-policy", :rule-type :deny, :failure? true})}
+----

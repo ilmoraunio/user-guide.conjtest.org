@@ -1,7 +1,7 @@
 [[getting_started]]
 == Getting started
 
-Here's how to get started with a simple deny-based policy.
+Here's how to get started with a simple deny policy.
 
 First, let's add an nginx-based Kubernetes ingress definition defined using
 YAML.
