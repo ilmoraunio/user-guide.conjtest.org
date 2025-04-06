@@ -11,9 +11,9 @@ values:
 - string, eg. `"error message"`
 - a collection, eg. `["error message 1" "error message 2"]`
 
-Returning a string or a collection from the function will always result in a
-policy failure. For truthy/falsey values, the outcome depends on the policy's
-type.
+Returning a string or a non-empty collection from the function will always
+result in a policy failure. For truthy/falsey values, the outcome depends on
+the policy's type. An empty collection is regarded as a falsey value.
 
 For *deny policies*, function must return `false` (or falsey) to succeed.  For
 *allow policies*, function must return `true` (or truthy) to succeed.  For
