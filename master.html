@@ -684,12 +684,25 @@ part of a CI/CD pipeline.</p>
 <h2 id="installation"><a class="link" href="#installation">Installation</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Download the binary from the
-<a href="https://github.com/ilmoraunio/conjtest/releases">latest release</a>.</p>
+<p>Download the binaries for the MacOS (arm64) and Linux (amd64) platforms from
+the repository&#8217;s <a href="https://github.com/ilmoraunio/conjtest/releases">latest
+release</a> and install the binary to <code>usr/local/bin</code>.</p>
 </div>
-<div class="paragraph">
-<p>Install the binary under <code>/usr/local/bin</code> and run <code>sudo chmod +x
-/usr/local/bin/conjtest</code> on the binary.</p>
+<div class="listingblock">
+<div class="title">MacOS (arm64)</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sLO</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.0.1/conjtest-0.0.1-macos-arm64.zip <span class="nt">-o</span> conjtest.zip
+unzip conjtest.zip conjtest
+<span class="nb">sudo mv </span>conjtest /usr/local/bin</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Linux (amd64)</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sLO</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.0.1/conjtest-0.0.1-linux-x86_64.tar.gz <span class="nt">-o</span> conjtest.tar.gz
+<span class="nb">tar</span> <span class="nt">-xvzf</span> conjtest.zip conjtest
+<span class="nb">sudo mv </span>conjtest /usr/local/bin</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -813,9 +826,9 @@ values:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Returning a string or a collection from the function will always result in a
-policy failure. For truthy/falsey values, the outcome depends on the policy&#8217;s
-type.</p>
+<p>Returning a string or a non-empty collection from the function will always
+result in a policy failure. For truthy/falsey values, the outcome depends on
+the policy&#8217;s type. An empty collection is regarded as a falsey value.</p>
 </div>
 <div class="paragraph">
 <p>For <strong>deny policies</strong>, function must return <code>false</code> (or falsey) to succeed.  For
@@ -1361,7 +1374,7 @@ using babashka tasks.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-04-06 15:12:25 +0300
+Last updated 2025-04-06 15:19:30 +0300
 </div>
 </div>
 <!-- see https://github.com/asciidoctor/asciidoctor/issues/699#issuecomment-321066006 -->
