@@ -1,8 +1,22 @@
 [[installation]]
 == Installation
 
-Download the binary from the
-https://github.com/ilmoraunio/conjtest/releases[latest release].
+Download the binaries for the MacOS (arm64) and Linux (amd64) platforms from
+the repository's https://github.com/ilmoraunio/conjtest/releases[latest
+release] and install the binary to `usr/local/bin`.
 
-Install the binary under `/usr/local/bin` and run `sudo chmod +x
-/usr/local/bin/conjtest` on the binary.
+.MacOS (arm64)
+[source, bash]
+----
+curl -sLO https://github.com/ilmoraunio/conjtest/releases/download/v0.0.1/conjtest-0.0.1-macos-arm64.zip -o conjtest.zip
+unzip conjtest.zip conjtest
+sudo mv conjtest /usr/local/bin
+----
+
+.Linux (amd64)
+[source, bash]
+----
+curl -sLO https://github.com/ilmoraunio/conjtest/releases/download/v0.0.1/conjtest-0.0.1-linux-x86_64.tar.gz -o conjtest.tar.gz
+tar -xvzf conjtest.zip conjtest
+sudo mv conjtest /usr/local/bin
+----
