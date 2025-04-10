@@ -20,13 +20,13 @@ metadata:
 EOF
 ----
 
-Now add a policy called `my-rules.clj` containing a rule to fail if the field
+Now add a policy called `policy.clj` containing a rule to fail if the field
 `nginx.ingress.kubernetes.io/cors-allow-origin` contains a `"*"`.
 
 [source,bash]
 ----
-cat <<EOF > my-rules.clj
-(ns my-rules)
+cat <<EOF > policy.clj
+(ns policy)
 
 (defn deny-*-cors
   [input]
@@ -43,7 +43,7 @@ forbidden asterisk `"*"`.
 
 [source,bash]
 ----
-$ conjtest test my-ingress.yaml -p my-rules.clj
+$ conjtest test my-ingress.yaml -p policy.clj
 FAIL - my-ingress.yaml - deny-*-cors - CORS is too permissive
 
 1 tests, 0 passed, 0 warnings, 1 failures
@@ -72,7 +72,7 @@ Your policy should now pass without failure.
 
 [source,bash]
 ----
-$ conjtest test my-ingress.yaml -p my-rules.clj
+$ conjtest test my-ingress.yaml -p policy.clj
 1 tests, 1 passed, 0 warnings, 0 failures
 
 $ echo $?
