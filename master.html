@@ -731,13 +731,13 @@ EOF</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now add a policy called <code>my-rules.clj</code> containing a rule to fail if the field
+<p>Now add a policy called <code>policy.clj</code> containing a rule to fail if the field
 <code>nginx.ingress.kubernetes.io/cors-allow-origin</code> contains a <code>"*"</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash"><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh"> &gt; my-rules.clj
-(ns my-rules)
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh"> &gt; policy.clj
+(ns policy)
 
 (defn deny-*-cors
   [input]
@@ -755,7 +755,7 @@ forbidden asterisk <code>"*"</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>conjtest <span class="nb">test </span>my-ingress.yaml <span class="nt">-p</span> my-rules.clj
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>conjtest <span class="nb">test </span>my-ingress.yaml <span class="nt">-p</span> policy.clj
 FAIL - my-ingress.yaml - deny-<span class="k">*</span><span class="nt">-cors</span> - CORS is too permissive
 
 1 tests, 0 passed, 0 warnings, 1 failures
@@ -786,7 +786,7 @@ EOF</span></code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>conjtest <span class="nb">test </span>my-ingress.yaml <span class="nt">-p</span> my-rules.clj
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>conjtest <span class="nb">test </span>my-ingress.yaml <span class="nt">-p</span> policy.clj
 1 tests, 1 passed, 0 warnings, 0 failures
 
 <span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$?</span>
