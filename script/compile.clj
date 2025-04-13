@@ -2,10 +2,7 @@
 
 (require '[babashka.process :as p])
 
-(def out-page (str "gh-pages/"
-                   (or (System/getenv "CONJTEST_BOOK_MAIN")
-                       "master")
-                   ".html"))
+(def out-page "gh-pages/index.html")
 (-> (p/$ asciidoctor src/book.adoc -o ~out-page -a docinfo=shared)
     (p/check))
 
