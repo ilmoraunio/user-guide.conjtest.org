@@ -1,4 +1,4 @@
-# Conjtest book
+# Conjtest user guide
 
 ## Contributing
 
