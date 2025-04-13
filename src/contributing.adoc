@@ -16,6 +16,6 @@ You can also make an issue or PR to the following project repositories:
 === Documentation
 
 To contribute to this user guide, make an
-https://github.com/ilmoraunio/conjtest.github.io/issues[issue] and/or
-https://github.com/ilmoraunio/conjtest.github.io/pulls[PR] to the
-https://github.com/ilmoraunio/conjtest.github.io[repository].
+https://github.com/ilmoraunio/user-guide.conjtest.org/issues[issue] and/or
+https://github.com/ilmoraunio/user-guide.conjtest.org/pulls[PR] to the
+https://github.com/ilmoraunio/user-guide.conjtest.org[repository].
