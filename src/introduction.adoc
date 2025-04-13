@@ -13,4 +13,6 @@ This tool is suited for you if:
 
 - You want to validate your configuration files using a Policy-as-Code tool as
   part of a CI/CD pipeline.
+- Catch problems or security issues before they become incidents & enforce
+  compliance.
 - You want maintain the policies using Clojure/Babashka.
