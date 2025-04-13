@@ -1,6 +1,21 @@
 [[contributing]]
 == Contributing
 
-Make an https://github.com/ilmoraunio/conjtest.github.io/issues[issue] and/or
+Contributions are welcome!
+
+Join the https://clojurians.slack.com/app_redirect?channel=conjtest[#conjtest]
+channel in the Clojurians Slack for discussion.
+
+You can also make an issue or PR to the following project repositories:
+
+- https://github.com/ilmoraunio/conjtest
+- https://github.com/ilmoraunio/conjtest-clj
+- https://github.com/ilmoraunio/pod-ilmoraunio-conjtest
+- https://github.com/ilmoraunio/pod-ilmoraunio-conftest
+
+=== Documentation
+
+To contribute to this user guide, make an
+https://github.com/ilmoraunio/conjtest.github.io/issues[issue] and/or
 https://github.com/ilmoraunio/conjtest.github.io/pulls[PR] to the
 https://github.com/ilmoraunio/conjtest.github.io[repository].
