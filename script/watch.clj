@@ -16,10 +16,7 @@
 (def cwd (System/getProperty "user.dir"))
 
 (require '[clojure.java.io :as io])
-(def index (io/file cwd (str "gh-pages/"
-                             (or (System/getenv "CONJTEST_BOOK_MAIN")
-                                 "master")
-                             ".html")))
+(def index (io/file cwd "gh-pages/index.html"))
 
 (eta/go browser (str (.toURL index)))
 
