@@ -1,6 +1,39 @@
 [[installation]]
 == Installation
 
+==== Installer script
+
+Download & run the installer script using `bash`.
+
+[source, bash]
+----
+bash < <(curl -s https://raw.githubusercontent.com/ilmoraunio/conjtest/master/install)
+----
+
+By default the script will install the binary to `/usr/local/bin` (you may need
+to use `sudo`).
+
+You can install the binary to another location using `--install-dir`.
+
+[source, bash]
+----
+curl -sO https://raw.githubusercontent.com/ilmoraunio/conjtest/master/install
+chmod u+x install
+./install --install-dir .
+----
+
+To install a specific version, you may provide `--version`.
+
+[source, bash]
+----
+./install --version 0.0.1
+----
+
+The full list of versions can be found from
+https://github.com/ilmoraunio/conjtest/tags[here].
+
+=== GitHub releases
+
 Download the binaries for the MacOS (arm64) and Linux (amd64) platforms from
 the repository's https://github.com/ilmoraunio/conjtest/releases[latest
 release] and install the binary to `usr/local/bin`.
