@@ -53,3 +53,11 @@ curl -sLO https://github.com/ilmoraunio/conjtest/releases/download/v0.0.2/conjte
 tar -xvzf conjtest.zip conjtest
 sudo mv conjtest /usr/local/bin
 ----
+
+.Linux (arm64)
+[source, bash]
+----
+curl -sL https://github.com/ilmoraunio/conjtest/releases/download/v0.0.2/conjtest-0.0.2-linux-arm64.tar.gz -o conjtest.tar.gz
+tar -xvzf conjtest.tar.gz conjtest
+sudo mv conjtest /usr/local/bin
+----
