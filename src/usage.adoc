@@ -189,6 +189,58 @@ required:
 - `clojure.template`
 - Locally defined namespaces (see: xref:_local_file_requires[])
 
+=== Keyworded keys
+
+Some configuration formats support keyworded keys by default.
+
+.CLI invocation example
+[source, bash]
+----
+$ conjtest parse deps.edn
+
+{:deps
+ {org.clojure/clojure #:mvn{:version "1.12.0"},
+  ilmoraunio/conjtest-clj #:local{:root "../conjtest-clj"}}}
+----
+
+To return keyworded keys for all configuration formats, you can provide the
+`keywordize?` option via `--config`.
+
+.conjtest.edn
+[source, clojure]
+----
+{:keywordize? true}
+----
+
+.CLI invocation example
+[source, bash]
+----
+$ conjtest parse examples/hcl2/terraform.tf --config conjtest.edn
+{:resource
+ {:aws_alb_listener
+  {:my-alb-listener [{:port "80", :protocol "HTTP"}]},
+  :aws_db_security_group {:my-group [{}]},
+  :aws_s3_bucket
+  {:valid
+   [{:acl "private",
+     :bucket "validBucket",
+     :tags {:environment "prod", :owner "devops"}}]},
+  :aws_security_group_rule
+  {:my-rule [{:cidr_blocks ["0.0.0.0/0"], :type "ingress"}]},
+  :azurerm_managed_disk
+  {:source [{:encryption_settings [{:enabled false}]}]}}}
+
+$ conjtest test examples/hcl2/terraform.tf -p examples/hcl2/policy.clj --config conjtest.edn
+FAIL - examples/hcl2/terraform.tf - deny-fully-open-ingress - ASG rule ':my-rule' defines a fully open ingress
+FAIL - examples/hcl2/terraform.tf - deny-http - ALB listener ':my-alb-listener' is using HTTP rather than HTTPS
+FAIL - examples/hcl2/terraform.tf - deny-missing-tags - AWS resource: :aws_alb_listener named ':my-alb-listener' is missing required tags: #{:environment :owner}
+FAIL - examples/hcl2/terraform.tf - deny-missing-tags - AWS resource: :aws_db_security_group named ':my-group' is missing required tags: #{:environment :owner}
+FAIL - examples/hcl2/terraform.tf - deny-missing-tags - AWS resource: :aws_security_group_rule named ':my-rule' is missing required tags: #{:environment :owner}
+FAIL - examples/hcl2/terraform.tf - deny-unencrypted-azure-disk - Azure disk ':source' is not encrypted
+
+4 tests, 0 passed, 0 warnings, 4 failures
+----
+
 === Local file requires
 
 It's possible to require your locally defined namespaces by passing a
@@ -236,7 +288,8 @@ be found, otherwise it will use a Go-based parser. If a suitable parser cannot
 be found, exit code 1 is returned.
 
 Conjtest supports returning keys using keywords for Clojure-based parsers. For
-Go-based parsers, keys are currently always returned as a string.
+Go-based parsers, keys are returned as a string by default, but can be changed
+via configuration file (see: xref:_keyworded_keys[]).
 
 If necessary, you can force Conjtest to use Go-based parsers via
 `--go-parsers-only`.
