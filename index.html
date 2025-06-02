@@ -634,6 +634,7 @@ pre.rouge .gs {
 <li><a href="#_exit_codes">Exit codes</a></li>
 <li><a href="#_fail_on_warn">--fail-on-warn</a></li>
 <li><a href="#_supported_runtime_libraries">Supported runtime libraries</a></li>
+<li><a href="#_keyworded_keys">Keyworded keys</a></li>
 <li><a href="#_local_file_requires">Local file requires</a></li>
 <li><a href="#_parsing_configuration_files">Parsing configuration files</a>
 <ul class="sectlevel3">
@@ -1138,6 +1139,61 @@ required:</p>
 </div>
 </div>
 <div class="sect2">
+<h3 id="_keyworded_keys"><a class="link" href="#_keyworded_keys">Keyworded keys</a></h3>
+<div class="paragraph">
+<p>Some configuration formats support keyworded keys by default.</p>
+</div>
+<div class="listingblock">
+<div class="title">CLI invocation example</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>conjtest parse deps.edn
+
+<span class="o">{</span>:deps
+ <span class="o">{</span>org.clojure/clojure <span class="c">#:mvn{:version "1.12.0"},</span>
+  ilmoraunio/conjtest-clj <span class="c">#:local{:root "../conjtest-clj"}}}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To return keyworded keys for all configuration formats, you can provide the
+<code>keywordize?</code> option via <code>--config</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">conjtest.edn</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="no">:keywordize?</span><span class="w"> </span><span class="n">true</span><span class="p">}</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">CLI invocation example</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>conjtest parse examples/hcl2/terraform.tf <span class="nt">--config</span> conjtest.edn
+<span class="o">{</span>:resource
+ <span class="o">{</span>:aws_alb_listener
+  <span class="o">{</span>:my-alb-listener <span class="o">[{</span>:port <span class="s2">"80"</span>, :protocol <span class="s2">"HTTP"</span><span class="o">}]}</span>,
+  :aws_db_security_group <span class="o">{</span>:my-group <span class="o">[{}]}</span>,
+  :aws_s3_bucket
+  <span class="o">{</span>:valid
+   <span class="o">[{</span>:acl <span class="s2">"private"</span>,
+     :bucket <span class="s2">"validBucket"</span>,
+     :tags <span class="o">{</span>:environment <span class="s2">"prod"</span>, :owner <span class="s2">"devops"</span><span class="o">}}]}</span>,
+  :aws_security_group_rule
+  <span class="o">{</span>:my-rule <span class="o">[{</span>:cidr_blocks <span class="o">[</span><span class="s2">"0.0.0.0/0"</span><span class="o">]</span>, :type <span class="s2">"ingress"</span><span class="o">}]}</span>,
+  :azurerm_managed_disk
+  <span class="o">{</span>:source <span class="o">[{</span>:encryption_settings <span class="o">[{</span>:enabled <span class="nb">false</span><span class="o">}]}]}}}</span>
+
+<span class="nv">$ </span>conjtest <span class="nb">test </span>examples/hcl2/terraform.tf <span class="nt">-p</span> examples/hcl2/policy.clj <span class="nt">--config</span> conjtest.edn
+FAIL - examples/hcl2/terraform.tf - deny-fully-open-ingress - ASG rule <span class="s1">':my-rule'</span> defines a fully open ingress
+FAIL - examples/hcl2/terraform.tf - deny-http - ALB listener <span class="s1">':my-alb-listener'</span> is using HTTP rather than HTTPS
+FAIL - examples/hcl2/terraform.tf - deny-missing-tags - AWS resource: :aws_alb_listener named <span class="s1">':my-alb-listener'</span> is missing required tags: <span class="c">#{:environment :owner}</span>
+FAIL - examples/hcl2/terraform.tf - deny-missing-tags - AWS resource: :aws_db_security_group named <span class="s1">':my-group'</span> is missing required tags: <span class="c">#{:environment :owner}</span>
+FAIL - examples/hcl2/terraform.tf - deny-missing-tags - AWS resource: :aws_security_group_rule named <span class="s1">':my-rule'</span> is missing required tags: <span class="c">#{:environment :owner}</span>
+FAIL - examples/hcl2/terraform.tf - deny-unencrypted-azure-disk - Azure disk <span class="s1">':source'</span> is not encrypted
+
+4 tests, 0 passed, 0 warnings, 4 failures</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_local_file_requires"><a class="link" href="#_local_file_requires">Local file requires</a></h3>
 <div class="paragraph">
 <p>It&#8217;s possible to require your locally defined namespaces by passing a
@@ -1191,7 +1247,8 @@ be found, exit code 1 is returned.</p>
 </div>
 <div class="paragraph">
 <p>Conjtest supports returning keys using keywords for Clojure-based parsers. For
-Go-based parsers, keys are currently always returned as a string.</p>
+Go-based parsers, keys are returned as a string by default, but can be changed
+via configuration file (see: <a href="#_keyworded_keys">Keyworded keys</a>).</p>
 </div>
 <div class="paragraph">
 <p>If necessary, you can force Conjtest to use Go-based parsers via
