@@ -776,7 +776,16 @@ unzip conjtest.zip conjtest
 <p>Here&#8217;s how to get started with a simple deny policy.</p>
 </div>
 <div class="paragraph">
-<p>First, let&#8217;s add an nginx-based Kubernetes ingress definition defined using
+<p>First, let&#8217;s initialize conjtest configuration. This will create a default
+<code>conjtest.edn</code> file to your current directory.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">conjtest init</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, add an nginx-based Kubernetes ingress definition defined using
 YAML.</p>
 </div>
 <div class="listingblock">
