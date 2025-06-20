@@ -3,6 +3,11 @@
 
 === Policies
 
+There are two kinds of policies:
+
+- Function-based policies (referred to as policies)
+- Declarative policies (based on https://github.com/metosin/malli[malli] schemas)
+
 Policies are single-arity functions which must return either of the following
 values:
 
@@ -95,6 +100,98 @@ this convention will be filtered out and not evaluated.
        (= "Service" (:kind input))
        (not= 80 (-> input :spec :ports first :port))))
 ----
+
+==== Declarative policies
+
+It's possible to also write declarative policies using
+https://github.com/metosin/malli[malli] schemas.
+
+Declarative policies work much the same way as function-based policies except
+that they are defined as malli schemas and do not have special rules on return
+values. Malli schemas are evaluated using
+https://github.com/metosin/malli?tab=readme-ov-file#validation[`malli.core/validate`]
+after which they are processed for any errors using
+https://github.com/metosin/malli?tab=readme-ov-file#error-messages[`malli.core/explain`]
+and
+https://github.com/metosin/malli?tab=readme-ov-file#humanized-error-messages[`malli.error/humanize`].
+
+.Declarative policy https://github.com/ilmoraunio/conjtest/blob/main/examples/yaml/kubernetes/deployment.yaml[YAML] example
+[source, clojure]
+----
+(ns policy)
+
+(def allow-declarative-example
+  [:map
+   [:kind [:= "Deployment"]]
+   [:metadata
+    [:map
+     [:name :string]]]
+   [:spec
+    [:map
+     [:selector
+      [:map
+       [:matchLabels
+        [:map
+         [:app :string]
+         [:release :string]]]]]
+     [:template
+      [:map
+       [:spec
+        [:map
+         [:securityContext {:optional true}
+          [:map
+           [:runAsNonRoot [:not= {:error/message "Containers must not run as root"}
+                           true]]]]]]]]]]])
+----
+
+.Declarative policy https://github.com/ilmoraunio/conjtest/tree/main/examples/json[JSON] example using regular expressions
+[source, clojure]
+----
+(ns policy)
+
+(def allow-declarative-example
+  [:map
+   [:dependencies [:map-of :keyword [:re
+                                     {:error/fn (fn [{:keys [value]} _]
+                                                  (format "caret ranges not allowed, version found: %s" value))}
+                                     "^[0-9~]|latest|beta|>="]]]])
+----
+
+.Declarative policy https://github.com/ilmoraunio/conjtest/tree/main/examples/edn[EDN] example using Fn schemas
+[source, clojure]
+----
+(def allow-declarative-example
+  [:and
+   [:map
+    [:db
+     [:map
+      [:user :string]
+      [:pwd :string]
+      [:host :string]
+      [:db :string]
+      [:port :int]]]
+    [:myapp [:map
+             [:port :int]
+             [:features [:set
+                         [:enum :admin-panel :keyboard-shortcuts]]]
+             [:foo
+              [:map
+               [:hostname :string]
+               [:api-keys [:vector :string]]
+               [:recheck-frequency :string]]]
+             [:forever-date inst?]
+             [:process-pool :int]]]
+    [:log :keyword]
+    [:env [:enum :production]]]
+   [:fn {:error/message "Applications in the production environment should have error only logging"}
+    (fn [input]
+      (and (= :production (:env input))
+           (= :error (:log input))))]])
+----
+
+It's recommended to write allow policies when using declarative policies.  Deny
+and warn declarative policies are still supported. However, error messages are
+not supported with deny or warn policies.
 
 === Policy metadata
 
