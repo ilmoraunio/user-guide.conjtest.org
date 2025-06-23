@@ -140,4 +140,4 @@ FAIL - my-ingress.yaml - allow-non-*-cors - {:metadata {:annotations {:nginx.ing
 1 tests, 0 passed, 0 warnings, 1 failures
 ----
 
-For more on declarative policies, see: xref:_declarative_policies[]
+See also chapter on xref:_declarative_policies[]
