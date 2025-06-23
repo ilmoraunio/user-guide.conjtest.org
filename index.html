@@ -627,14 +627,15 @@ pre.rouge .gs {
 </li>
 <li><a href="#getting_started">Getting started</a>
 <ul class="sectlevel2">
-<li><a href="#_declarative_policies">Declarative policies</a></li>
+<li><a href="#_basic_example">Basic example</a></li>
+<li><a href="#_declarative_policy_example">Declarative policy example</a></li>
 </ul>
 </li>
 <li><a href="#usage">Usage</a>
 <ul class="sectlevel2">
 <li><a href="#_policies">Policies</a>
 <ul class="sectlevel3">
-<li><a href="#_declarative_policies_2">Declarative policies</a></li>
+<li><a href="#_declarative_policies">Declarative policies</a></li>
 </ul>
 </li>
 <li><a href="#_policy_metadata">Policy metadata</a></li>
@@ -780,6 +781,8 @@ unzip conjtest.zip conjtest
 <div class="sect1">
 <h2 id="getting_started"><a class="link" href="#getting_started">Getting started</a></h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_basic_example"><a class="link" href="#_basic_example">Basic example</a></h3>
 <div class="paragraph">
 <p>Here&#8217;s how to get started with a simple deny policy.</p>
 </div>
@@ -878,8 +881,9 @@ EOF</span></code></pre>
 commands as part of your CI pipeline or to your githooks and, of course, to
 create more policies.</p>
 </div>
+</div>
 <div class="sect2">
-<h3 id="_declarative_policies"><a class="link" href="#_declarative_policies">Declarative policies</a></h3>
+<h3 id="_declarative_policy_example"><a class="link" href="#_declarative_policy_example">Declarative policy example</a></h3>
 <div class="paragraph">
 <p>You can also get started using declarative policies which are just
 <a href="https://github.com/metosin/malli">malli</a> schemas.</p>
@@ -928,7 +932,7 @@ FAIL - my-ingress.yaml - allow-non-<span class="k">*</span><span class="nt">-cor
 </div>
 </div>
 <div class="paragraph">
-<p>For more on declarative policies, see: <a href="#_declarative_policies_2">Declarative policies</a></p>
+<p>For more on declarative policies, see: <a href="#_declarative_policies">Declarative policies</a></p>
 </div>
 </div>
 </div>
@@ -1075,7 +1079,7 @@ this convention will be filtered out and not evaluated.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_declarative_policies_2"><a class="link" href="#_declarative_policies_2">Declarative policies</a></h4>
+<h4 id="_declarative_policies"><a class="link" href="#_declarative_policies">Declarative policies</a></h4>
 <div class="paragraph">
 <p>It&#8217;s possible to also write declarative policies using
 <a href="https://github.com/metosin/malli">malli</a> schemas.</p>
@@ -1165,9 +1169,13 @@ and
 </div>
 </div>
 <div class="paragraph">
+<p>For more declarative policy examples, click
+<a href="https://github.com/search?q=repo%3Ailmoraunio%2Fconjtest+%22def+allow-declarative-example%22&amp;type=code">here</a>.</p>
+</div>
+<div class="paragraph">
 <p>It&#8217;s recommended to write allow policies when using declarative policies.  Deny
-and warn declarative policies are still supported. However, error messages are
-not supported with deny or warn policies.</p>
+and warn declarative policies are still supported. However, custom error
+messages are not supported with deny or warn policies.</p>
 </div>
 </div>
 </div>
