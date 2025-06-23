@@ -986,8 +986,8 @@ the policy&#8217;s type. An empty collection is regarded as a falsey value.</p>
 <strong>warn policies</strong>, function must return <code>false</code> (or falsey) to succeed.</p>
 </div>
 <div class="paragraph">
-<p>In <code>conjtest</code>, policy (function) names must start with either <code>deny-</code>,
-<code>allow-</code>, or <code>warn-</code>.</p>
+<p>In <code>conjtest</code>, policy names (ie. defined using <code>def</code> or <code>defn</code>) must start with
+either <code>deny-</code>, <code>allow-</code>, or <code>warn-</code>.</p>
 </div>
 <div class="paragraph">
 <p>When <code>conjtest</code> is provided a policy file, it will gather every public var in
@@ -1004,7 +1004,7 @@ this convention will be filtered out and not evaluated.</p>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top">Policy type</th>
-<th class="tableblock halign-left valign-top">Function name (begins with)</th>
+<th class="tableblock halign-left valign-top">Policy name (begins with)</th>
 <th class="tableblock halign-left valign-top">Policy success</th>
 </tr>
 </thead>
@@ -1086,13 +1086,49 @@ this convention will be filtered out and not evaluated.</p>
 </div>
 <div class="paragraph">
 <p>Declarative policies work much the same way as function-based policies except
-that they are defined as malli schemas and do not have special rules on return
-values. Malli schemas are evaluated using
+that they are defined as malli schemas and have different rules for policy
+success. Malli schemas are evaluated using
 <a href="https://github.com/metosin/malli?tab=readme-ov-file#validation"><code>malli.core/validate</code></a>
 after which they are processed for any errors using
 <a href="https://github.com/metosin/malli?tab=readme-ov-file#error-messages"><code>malli.core/explain</code></a>
 and
 <a href="https://github.com/metosin/malli?tab=readme-ov-file#humanized-error-messages"><code>malli.error/humanize</code></a>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Policy type</th>
+<th class="tableblock halign-left valign-top">Policy name (begins with)</th>
+<th class="tableblock halign-left valign-top">Policy success</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deny</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deny-</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>malli.core/validate</code> returns <code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Allow</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>allow-</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>malli.core/validate</code> returns <code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Warn</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>warn-</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>malli.core/validate</code> returns <code>false</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>It&#8217;s recommended to write allow policies when using declarative policies. Deny
+and warn declarative policies are still supported. However, custom error
+messages are not supported with deny or warn policies.</p>
 </div>
 <div class="listingblock">
 <div class="title">Declarative policy <a href="https://github.com/ilmoraunio/conjtest/blob/main/examples/yaml/kubernetes/deployment.yaml">YAML</a> example</div>
@@ -1172,11 +1208,6 @@ and
 <p>More declarative policy examples
 <a href="https://github.com/search?q=repo%3Ailmoraunio%2Fconjtest+%22def+allow-declarative-example%22&amp;type=code">here</a>.</p>
 </div>
-<div class="paragraph">
-<p>It&#8217;s recommended to write allow policies when using declarative policies. Deny
-and warn declarative policies are still supported. However, custom error
-messages are not supported with deny or warn policies.</p>
-</div>
 </div>
 </div>
 <div class="sect2">
@@ -1202,12 +1233,7 @@ fails), and the policy type using metadata.</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>rule/type</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>:deny</code>, <code>:allow</code>, <code>:warn</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Function name (begins with <code>deny-</code>, <code>allow-</code>, or <code>warn-</code>)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rule/name</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"> string or keyword</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Function name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Policy name (begins with <code>deny-</code>, <code>allow-</code>, or <code>warn-</code>)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>rule/message</code></p></td>
@@ -1327,6 +1353,11 @@ required:</p>
 </div>
 <div class="sect2">
 <h3 id="_keyworded_keys"><a class="link" href="#_keyworded_keys">Keyworded keys</a></h3>
+<div class="sidebarblock">
+<div class="content">
+Since 0.2.0 this behavior is provided by default when running <code>conjtest init</code>.
+</div>
+</div>
 <div class="paragraph">
 <p>Some configuration formats support keyworded keys by default.</p>
 </div>
