@@ -625,10 +625,18 @@ pre.rouge .gs {
 <li><a href="#_github_releases">GitHub releases</a></li>
 </ul>
 </li>
-<li><a href="#getting_started">Getting started</a></li>
+<li><a href="#getting_started">Getting started</a>
+<ul class="sectlevel2">
+<li><a href="#_declarative_policies">Declarative policies</a></li>
+</ul>
+</li>
 <li><a href="#usage">Usage</a>
 <ul class="sectlevel2">
-<li><a href="#_policies">Policies</a></li>
+<li><a href="#_policies">Policies</a>
+<ul class="sectlevel3">
+<li><a href="#_declarative_policies_2">Declarative policies</a></li>
+</ul>
+</li>
 <li><a href="#_policy_metadata">Policy metadata</a></li>
 <li><a href="#_running_policies">Running policies</a></li>
 <li><a href="#_exit_codes">Exit codes</a></li>
@@ -727,7 +735,7 @@ to use <code>sudo</code>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">./install <span class="nt">--version</span> 0.1.0</code></pre>
+<pre class="rouge highlight"><code data-lang="bash">./install <span class="nt">--version</span> 0.3.0</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -745,7 +753,7 @@ release</a> and install the binary to <code>usr/local/bin</code>.</p>
 <div class="listingblock">
 <div class="title">MacOS (arm64)</div>
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sL</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.1.0/conjtest-0.1.0-macos-arm64.zip <span class="nt">-o</span> conjtest.zip
+<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sL</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.3.0/conjtest-0.3.0-macos-arm64.zip <span class="nt">-o</span> conjtest.zip
 unzip conjtest.zip conjtest
 <span class="nb">sudo mv </span>conjtest /usr/local/bin</code></pre>
 </div>
@@ -753,7 +761,7 @@ unzip conjtest.zip conjtest
 <div class="listingblock">
 <div class="title">Linux (amd64)</div>
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sL</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.1.0/conjtest-0.1.0-linux-x86_64.tar.gz <span class="nt">-o</span> conjtest.tar.gz
+<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sL</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.3.0/conjtest-0.3.0-linux-x86_64.tar.gz <span class="nt">-o</span> conjtest.tar.gz
 <span class="nb">tar</span> <span class="nt">-xvzf</span> conjtest.zip conjtest
 <span class="nb">sudo mv </span>conjtest /usr/local/bin</code></pre>
 </div>
@@ -761,7 +769,7 @@ unzip conjtest.zip conjtest
 <div class="listingblock">
 <div class="title">Linux (arm64)</div>
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sL</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.1.0/conjtest-0.1.0-linux-arm64.tar.gz <span class="nt">-o</span> conjtest.tar.gz
+<pre class="rouge highlight"><code data-lang="bash">curl <span class="nt">-sL</span> https://github.com/ilmoraunio/conjtest/releases/download/v0.3.0/conjtest-0.3.0-linux-arm64.tar.gz <span class="nt">-o</span> conjtest.tar.gz
 <span class="nb">tar</span> <span class="nt">-xvzf</span> conjtest.tar.gz conjtest
 <span class="nb">sudo mv </span>conjtest /usr/local/bin</code></pre>
 </div>
@@ -870,6 +878,59 @@ EOF</span></code></pre>
 commands as part of your CI pipeline or to your githooks and, of course, to
 create more policies.</p>
 </div>
+<div class="sect2">
+<h3 id="_declarative_policies"><a class="link" href="#_declarative_policies">Declarative policies</a></h3>
+<div class="paragraph">
+<p>You can also get started using declarative policies which are just
+<a href="https://github.com/metosin/malli">malli</a> schemas.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh"> &gt; my-ingress.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+  name: service-a
+  namespace: foobar
+</span><span class="no">EOF
+
+</span><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh"> &gt; policy.clj
+(ns policy)
+
+(def allow-non-*-cors
+  [:map
+   [:metadata
+    [:map
+     [:annotations
+      [:map
+       [:nginx.ingress.kubernetes.io/cors-allow-origin [:not= {:error/message "CORS is too permissive"} "*"]]]]]]])
+EOF</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">conjtest init
+conjtest <span class="nb">test </span>my-ingress.yaml <span class="nt">-p</span> policy.clj</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>conjtest <span class="nb">test </span>my-ingress.yaml <span class="nt">-p</span> policy.clj
+FAIL - my-ingress.yaml - allow-non-<span class="k">*</span><span class="nt">-cors</span> - <span class="o">{</span>:metadata <span class="o">{</span>:annotations <span class="o">{</span>:nginx.ingress.kubernetes.io/cors-allow-origin <span class="o">[</span><span class="s2">"CORS is too permissive"</span><span class="o">]}}}</span>
+
+1 tests, 0 passed, 0 warnings, 1 failures</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more on declarative policies, see: <a href="#_declarative_policies_2">Declarative policies</a></p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -877,6 +938,19 @@ create more policies.</p>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_policies"><a class="link" href="#_policies">Policies</a></h3>
+<div class="paragraph">
+<p>There are two kinds of policies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Function-based policies (referred to as policies)</p>
+</li>
+<li>
+<p>Declarative policies (based on <a href="https://github.com/metosin/malli">malli</a> schemas)</p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
 <p>Policies are single-arity functions which must return either of the following
 values:</p>
@@ -998,6 +1072,102 @@ this convention will be filtered out and not evaluated.</p>
   </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="s">"v1"</span><span class="w"> </span><span class="p">(</span><span class="no">:apiVersion</span><span class="w"> </span><span class="n">input</span><span class="p">))</span><span class="w">
        </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="s">"Service"</span><span class="w"> </span><span class="p">(</span><span class="no">:kind</span><span class="w"> </span><span class="n">input</span><span class="p">))</span><span class="w">
        </span><span class="p">(</span><span class="nb">not=</span><span class="w"> </span><span class="mi">80</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="no">:spec</span><span class="w"> </span><span class="no">:ports</span><span class="w"> </span><span class="nb">first</span><span class="w"> </span><span class="no">:port</span><span class="p">))))</span></code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_declarative_policies_2"><a class="link" href="#_declarative_policies_2">Declarative policies</a></h4>
+<div class="paragraph">
+<p>It&#8217;s possible to also write declarative policies using
+<a href="https://github.com/metosin/malli">malli</a> schemas.</p>
+</div>
+<div class="paragraph">
+<p>Declarative policies work much the same way as function-based policies except
+that they are defined as malli schemas and do not have special rules on return
+values. Malli schemas are evaluated using
+<a href="https://github.com/metosin/malli?tab=readme-ov-file#validation"><code>malli.core/validate</code></a>
+after which they are processed for any errors using
+<a href="https://github.com/metosin/malli?tab=readme-ov-file#error-messages"><code>malli.core/explain</code></a>
+and
+<a href="https://github.com/metosin/malli?tab=readme-ov-file#humanized-error-messages"><code>malli.error/humanize</code></a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Declarative policy <a href="https://github.com/ilmoraunio/conjtest/blob/main/examples/yaml/kubernetes/deployment.yaml">YAML</a> example</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">ns</span><span class="w"> </span><span class="n">policy</span><span class="p">)</span><span class="w">
+
+</span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">allow-declarative-example</span><span class="w">
+  </span><span class="p">[</span><span class="no">:map</span><span class="w">
+   </span><span class="p">[</span><span class="no">:kind</span><span class="w"> </span><span class="p">[</span><span class="no">:=</span><span class="w"> </span><span class="s">"Deployment"</span><span class="p">]]</span><span class="w">
+   </span><span class="p">[</span><span class="no">:metadata</span><span class="w">
+    </span><span class="p">[</span><span class="no">:map</span><span class="w">
+     </span><span class="p">[</span><span class="no">:name</span><span class="w"> </span><span class="no">:string</span><span class="p">]]]</span><span class="w">
+   </span><span class="p">[</span><span class="no">:spec</span><span class="w">
+    </span><span class="p">[</span><span class="no">:map</span><span class="w">
+     </span><span class="p">[</span><span class="no">:selector</span><span class="w">
+      </span><span class="p">[</span><span class="no">:map</span><span class="w">
+       </span><span class="p">[</span><span class="no">:matchLabels</span><span class="w">
+        </span><span class="p">[</span><span class="no">:map</span><span class="w">
+         </span><span class="p">[</span><span class="no">:app</span><span class="w"> </span><span class="no">:string</span><span class="p">]</span><span class="w">
+         </span><span class="p">[</span><span class="no">:release</span><span class="w"> </span><span class="no">:string</span><span class="p">]]]]]</span><span class="w">
+     </span><span class="p">[</span><span class="no">:template</span><span class="w">
+      </span><span class="p">[</span><span class="no">:map</span><span class="w">
+       </span><span class="p">[</span><span class="no">:spec</span><span class="w">
+        </span><span class="p">[</span><span class="no">:map</span><span class="w">
+         </span><span class="p">[</span><span class="no">:securityContext</span><span class="w"> </span><span class="p">{</span><span class="no">:optional</span><span class="w"> </span><span class="n">true</span><span class="p">}</span><span class="w">
+          </span><span class="p">[</span><span class="no">:map</span><span class="w">
+           </span><span class="p">[</span><span class="no">:runAsNonRoot</span><span class="w"> </span><span class="p">[</span><span class="no">:not=</span><span class="w"> </span><span class="p">{</span><span class="no">:error/message</span><span class="w"> </span><span class="s">"Containers must not run as root"</span><span class="p">}</span><span class="w">
+                           </span><span class="n">true</span><span class="p">]]]]]]]]]]])</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Declarative policy <a href="https://github.com/ilmoraunio/conjtest/tree/main/examples/json">JSON</a> example using regular expressions</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">ns</span><span class="w"> </span><span class="n">policy</span><span class="p">)</span><span class="w">
+
+</span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">allow-declarative-example</span><span class="w">
+  </span><span class="p">[</span><span class="no">:map</span><span class="w">
+   </span><span class="p">[</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[</span><span class="no">:map-of</span><span class="w"> </span><span class="no">:keyword</span><span class="w"> </span><span class="p">[</span><span class="no">:re</span><span class="w">
+                                     </span><span class="p">{</span><span class="no">:error/fn</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">value</span><span class="p">]}</span><span class="w"> </span><span class="n">_</span><span class="p">]</span><span class="w">
+                                                  </span><span class="p">(</span><span class="nf">format</span><span class="w"> </span><span class="s">"caret ranges not allowed, version found: %s"</span><span class="w"> </span><span class="n">value</span><span class="p">))}</span><span class="w">
+                                     </span><span class="s">"^[0-9~]|latest|beta|&gt;="</span><span class="p">]]]])</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Declarative policy <a href="https://github.com/ilmoraunio/conjtest/tree/main/examples/edn">EDN</a> example using Fn schemas</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">allow-declarative-example</span><span class="w">
+  </span><span class="p">[</span><span class="no">:and</span><span class="w">
+   </span><span class="p">[</span><span class="no">:map</span><span class="w">
+    </span><span class="p">[</span><span class="no">:db</span><span class="w">
+     </span><span class="p">[</span><span class="no">:map</span><span class="w">
+      </span><span class="p">[</span><span class="no">:user</span><span class="w"> </span><span class="no">:string</span><span class="p">]</span><span class="w">
+      </span><span class="p">[</span><span class="no">:pwd</span><span class="w"> </span><span class="no">:string</span><span class="p">]</span><span class="w">
+      </span><span class="p">[</span><span class="no">:host</span><span class="w"> </span><span class="no">:string</span><span class="p">]</span><span class="w">
+      </span><span class="p">[</span><span class="no">:db</span><span class="w"> </span><span class="no">:string</span><span class="p">]</span><span class="w">
+      </span><span class="p">[</span><span class="no">:port</span><span class="w"> </span><span class="no">:int</span><span class="p">]]]</span><span class="w">
+    </span><span class="p">[</span><span class="no">:myapp</span><span class="w"> </span><span class="p">[</span><span class="no">:map</span><span class="w">
+             </span><span class="p">[</span><span class="no">:port</span><span class="w"> </span><span class="no">:int</span><span class="p">]</span><span class="w">
+             </span><span class="p">[</span><span class="no">:features</span><span class="w"> </span><span class="p">[</span><span class="no">:set</span><span class="w">
+                         </span><span class="p">[</span><span class="no">:enum</span><span class="w"> </span><span class="no">:admin-panel</span><span class="w"> </span><span class="no">:keyboard-shortcuts</span><span class="p">]]]</span><span class="w">
+             </span><span class="p">[</span><span class="no">:foo</span><span class="w">
+              </span><span class="p">[</span><span class="no">:map</span><span class="w">
+               </span><span class="p">[</span><span class="no">:hostname</span><span class="w"> </span><span class="no">:string</span><span class="p">]</span><span class="w">
+               </span><span class="p">[</span><span class="no">:api-keys</span><span class="w"> </span><span class="p">[</span><span class="no">:vector</span><span class="w"> </span><span class="no">:string</span><span class="p">]]</span><span class="w">
+               </span><span class="p">[</span><span class="no">:recheck-frequency</span><span class="w"> </span><span class="no">:string</span><span class="p">]]]</span><span class="w">
+             </span><span class="p">[</span><span class="no">:forever-date</span><span class="w"> </span><span class="n">inst?</span><span class="p">]</span><span class="w">
+             </span><span class="p">[</span><span class="no">:process-pool</span><span class="w"> </span><span class="no">:int</span><span class="p">]]]</span><span class="w">
+    </span><span class="p">[</span><span class="no">:log</span><span class="w"> </span><span class="no">:keyword</span><span class="p">]</span><span class="w">
+    </span><span class="p">[</span><span class="no">:env</span><span class="w"> </span><span class="p">[</span><span class="no">:enum</span><span class="w"> </span><span class="no">:production</span><span class="p">]]]</span><span class="w">
+   </span><span class="p">[</span><span class="no">:fn</span><span class="w"> </span><span class="p">{</span><span class="no">:error/message</span><span class="w"> </span><span class="s">"Applications in the production environment should have error only logging"</span><span class="p">}</span><span class="w">
+    </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">input</span><span class="p">]</span><span class="w">
+      </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="no">:production</span><span class="w"> </span><span class="p">(</span><span class="no">:env</span><span class="w"> </span><span class="n">input</span><span class="p">))</span><span class="w">
+           </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="no">:error</span><span class="w"> </span><span class="p">(</span><span class="no">:log</span><span class="w"> </span><span class="n">input</span><span class="p">))))]])</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It&#8217;s recommended to write allow policies when using declarative policies.  Deny
+and warn declarative policies are still supported. However, error messages are
+not supported with deny or warn policies.</p>
 </div>
 </div>
 </div>
