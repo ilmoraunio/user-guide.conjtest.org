@@ -24,8 +24,8 @@ For *deny policies*, function must return `false` (or falsey) to succeed.  For
 *allow policies*, function must return `true` (or truthy) to succeed.  For
 *warn policies*, function must return `false` (or falsey) to succeed.
 
-In `conjtest`, policy (function) names must start with either `deny-`,
-`allow-`, or `warn-`.
+In `conjtest`, policy names (ie. defined using `def` or `defn`) must start with
+either `deny-`, `allow-`, or `warn-`.
 
 When `conjtest` is provided a policy file, it will gather every public var in
 that file starting with `deny-`, `allow-`, or `warn-` and evaluate them.
@@ -34,7 +34,7 @@ this convention will be filtered out and not evaluated.
 
 [cols="1,1,1"]
 |===
-|Policy type|Function name (begins with)|Policy success
+|Policy type|Policy name (begins with)|Policy success
 
 |Deny
 |`deny-`
@@ -107,13 +107,34 @@ It's possible to also write declarative policies using
 https://github.com/metosin/malli[malli] schemas.
 
 Declarative policies work much the same way as function-based policies except
-that they are defined as malli schemas and do not have special rules on return
-values. Malli schemas are evaluated using
+that they are defined as malli schemas and have different rules for policy
+success. Malli schemas are evaluated using
 https://github.com/metosin/malli?tab=readme-ov-file#validation[`malli.core/validate`]
 after which they are processed for any errors using
 https://github.com/metosin/malli?tab=readme-ov-file#error-messages[`malli.core/explain`]
 and
 https://github.com/metosin/malli?tab=readme-ov-file#humanized-error-messages[`malli.error/humanize`].
+
+[cols="1,1,1"]
+|===
+|Policy type|Policy name (begins with)|Policy success
+
+|Deny
+|`deny-`
+|`malli.core/validate` returns `false`
+
+|Allow
+|`allow-`
+|`malli.core/validate` returns `true`
+
+|Warn
+|`warn-`
+|`malli.core/validate` returns `false`
+|===
+
+It's recommended to write allow policies when using declarative policies. Deny
+and warn declarative policies are still supported. However, custom error
+messages are not supported with deny or warn policies.
 
 .Declarative policy https://github.com/ilmoraunio/conjtest/blob/main/examples/yaml/kubernetes/deployment.yaml[YAML] example
 [source, clojure]
@@ -192,10 +213,6 @@ https://github.com/metosin/malli?tab=readme-ov-file#humanized-error-messages[`ma
 More declarative policy examples
 https://github.com/search?q=repo%3Ailmoraunio%2Fconjtest+%22def+allow-declarative-example%22&type=code[here].
 
-It's recommended to write allow policies when using declarative policies. Deny
-and warn declarative policies are still supported. However, custom error
-messages are not supported with deny or warn policies.
-
 === Policy metadata
 
 You can define policy name, top-level error message (if the rule otherwise
@@ -205,8 +222,7 @@ fails), and the policy type using metadata.
 |===
 |Supported keys|Supported values|Superseded by
 
-| `rule/type` | `:deny`, `:allow`, `:warn` | Function name (begins with `deny-`, `allow-`, or `warn-`)
-| `rule/name` | string or keyword | Function name
+| `rule/type` | `:deny`, `:allow`, `:warn` | Policy name (begins with `deny-`, `allow-`, or `warn-`)
 | `rule/message` | string | Function returns an error message
 |===
 
@@ -290,6 +306,9 @@ required:
 - Locally defined namespaces (see: xref:_local_file_requires[])
 
 === Keyworded keys
+
+[sidebar]
+Since 0.2.0 this behavior is provided by default when running `conjtest init`.
 
 Some configuration formats support keyworded keys by default.
 
