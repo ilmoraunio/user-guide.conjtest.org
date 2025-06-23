@@ -1,6 +1,8 @@
 [[getting_started]]
 == Getting started
 
+=== Basic example
+
 Here's how to get started with a simple deny policy.
 
 First, let's initialize conjtest configuration. This will create a default
@@ -91,7 +93,7 @@ And that's how you create a policy! Your next steps can be to attach the run
 commands as part of your CI pipeline or to your githooks and, of course, to
 create more policies.
 
-=== Declarative policies
+=== Declarative policy example
 
 You can also get started using declarative policies which are just
 https://github.com/metosin/malli[malli] schemas.
@@ -138,4 +140,4 @@ FAIL - my-ingress.yaml - allow-non-*-cors - {:metadata {:annotations {:nginx.ing
 1 tests, 0 passed, 0 warnings, 1 failures
 ----
 
-For more on declarative policies, see: xref:_declarative_policies_2[]
+For more on declarative policies, see: xref:_declarative_policies[]

@@ -189,9 +189,12 @@ https://github.com/metosin/malli?tab=readme-ov-file#humanized-error-messages[`ma
            (= :error (:log input))))]])
 ----
 
+For more declarative policy examples, click
+https://github.com/search?q=repo%3Ailmoraunio%2Fconjtest+%22def+allow-declarative-example%22&type=code[here].
+
 It's recommended to write allow policies when using declarative policies.  Deny
-and warn declarative policies are still supported. However, error messages are
-not supported with deny or warn policies.
+and warn declarative policies are still supported. However, custom error
+messages are not supported with deny or warn policies.
 
 === Policy metadata
 
