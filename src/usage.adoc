@@ -362,8 +362,8 @@ FAIL - examples/hcl2/terraform.tf - deny-unencrypted-azure-disk - Azure disk ':s
 
 === Local file requires
 
-It's possible to require your locally defined namespaces by passing a
-configuration file via `--config` and `:paths` key.
+It's possible to require your locally defined namespaces by passing a config
+file via `--config` and `:paths` key.
 
 .CLI invocation example
 [source, bash]
@@ -408,7 +408,7 @@ be found, exit code 1 is returned.
 
 Conjtest supports returning keys using keywords for Clojure-based parsers. For
 Go-based parsers, keys are returned as a string by default, but can be changed
-via configuration file (see: xref:_keyworded_keys[]).
+via config file (see: xref:_keyworded_keys[]).
 
 If necessary, you can force Conjtest to use Go-based parsers via
 `--go-parsers-only`.
