@@ -659,7 +659,11 @@ pre.rouge .gs {
 <li><a href="#_repl">REPL</a></li>
 </ul>
 </li>
-<li><a href="#use_via_babashka">Use via Babashka</a></li>
+<li><a href="#use_via_babashka">Use via Babashka</a>
+<ul class="sectlevel2">
+<li><a href="#_example">Example</a></li>
+</ul>
+</li>
 <li><a href="#contributing">Contributing</a>
 <ul class="sectlevel2">
 <li><a href="#_documentation">Documentation</a></li>
@@ -1671,13 +1675,68 @@ Started nREPL server at 0.0.0.0:1667</code></pre>
 <a href="https://github.com/ilmoraunio/pod-ilmoraunio-conjtest">pod-ilmoraunio-conjtest</a>.</p>
 </div>
 <div class="paragraph">
-<p>This can be useful if you need to use your own libraries, parser, or reporting
-mechanism.</p>
+<p>This can be useful if you want to create your own scripting using Babashka
+directly.</p>
 </div>
+<div class="sect2">
+<h3 id="_example"><a class="link" href="#_example">Example</a></h3>
 <div class="paragraph">
-<p>Simple
+<p>This is a simple
 <a href="https://github.com/ilmoraunio/conjtest/tree/main/demo/external_use">example</a>
 using babashka tasks.</p>
+</div>
+<div class="paragraph">
+<p>Assume you have the following <code>bb.edn</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="no">:paths</span><span class="w"> </span><span class="p">[</span><span class="s">"."</span><span class="p">]</span><span class="w">
+ </span><span class="no">:deps</span><span class="w"> </span><span class="p">{</span><span class="n">org.conjtest/conjtest-clj</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"0.4.0"</span><span class="p">}}</span><span class="w">
+ </span><span class="no">:pods</span><span class="w"> </span><span class="p">{</span><span class="n">ilmoraunio/conjtest</span><span class="w"> </span><span class="p">{</span><span class="no">:version</span><span class="w"> </span><span class="s">"0.1.1"</span><span class="p">}}</span><span class="w">
+ </span><span class="no">:tasks</span><span class="w">
+ </span><span class="p">{</span><span class="no">:requires</span><span class="w"> </span><span class="p">([</span><span class="n">main</span><span class="p">])</span><span class="w">
+  </span><span class="nb">test</span><span class="w"> </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">main/test</span><span class="w"> </span><span class="n">*command-line-args*</span><span class="p">)}}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In your <code>main.clj</code> you can define the <code>test</code> task with custom reporting
+behavior (I&#8217;ve provided a very barebones example here).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">ns</span><span class="w"> </span><span class="n">main</span><span class="w">
+  </span><span class="p">(</span><span class="no">:require</span><span class="w"> </span><span class="p">[</span><span class="n">conjtest.core</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">conjtest</span><span class="p">]</span><span class="w">
+            </span><span class="p">[</span><span class="n">pod-ilmoraunio-conjtest.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">parser</span><span class="p">]</span><span class="w">
+            </span><span class="p">[</span><span class="n">policy</span><span class="p">]))</span><span class="w">
+
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="nb">test</span><span class="w">
+  </span><span class="p">[</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[</span><span class="n">inputs</span><span class="w"> </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">parser/parse</span><span class="w"> </span><span class="n">args</span><span class="p">)]</span><span class="w">
+    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">summary-report</span><span class="w"> </span><span class="n">failure-report</span><span class="p">]}</span><span class="w">
+          </span><span class="p">(</span><span class="nf">conjtest/test</span><span class="w"> </span><span class="n">inputs</span><span class="w"> </span><span class="ss">'policy</span><span class="p">)]</span><span class="w">
+      </span><span class="p">(</span><span class="k">cond</span><span class="w">
+        </span><span class="n">failure-report</span><span class="w"> </span><span class="p">(</span><span class="nf">do</span><span class="w"> </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="n">failure-report</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">System/exit</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w">
+        </span><span class="n">summary-report</span><span class="w"> </span><span class="p">(</span><span class="nf">do</span><span class="w"> </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="n">summary-report</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">System/exit</span><span class="w"> </span><span class="mi">0</span><span class="p">))))))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Running this against an EDN configuration file,
+<a href="https://github.com/ilmoraunio/conjtest/blob/main/demo/external_use/sample_config.edn"><code>sample_config.edn</code></a>,
+using the following
+<a href="https://github.com/ilmoraunio/conjtest/blob/main/demo/external_use/policy.clj">policy</a>
+gives you the output below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span>bb <span class="nb">test </span>sample_config.edn
+FAIL - sample_config.edn - deny-incorrect-log-level-production - Applications <span class="k">in </span>the production environment should have error only logging
+
+2 tests, 1 passed, 0 warnings, 1 failures
+
+<span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$?</span>
+1</code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>
