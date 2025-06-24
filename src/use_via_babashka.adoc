@@ -5,9 +5,60 @@ Conjtest supports usage via Babashka directly with
 https://github.com/ilmoraunio/conjtest-clj[conjtest-clj] library and
 https://github.com/ilmoraunio/pod-ilmoraunio-conjtest[pod-ilmoraunio-conjtest].
 
-This can be useful if you need to use your own libraries, parser, or reporting
-mechanism.
+This can be useful if you want to create your own scripting using Babashka
+directly.
 
-Simple
+=== Example
+
+This is a simple
 https://github.com/ilmoraunio/conjtest/tree/main/demo/external_use[example]
 using babashka tasks.
+
+Assume you have the following `bb.edn`:
+
+[source,clojure]
+----
+{:paths ["."]
+ :deps {org.conjtest/conjtest-clj {:mvn/version "0.4.0"}}
+ :pods {ilmoraunio/conjtest {:version "0.1.1"}}
+ :tasks
+ {:requires ([main])
+  test (apply main/test *command-line-args*)}}
+----
+
+In your `main.clj` you can define the `test` task with custom reporting
+behavior (I've provided a very barebones example here).
+
+[source,clojure]
+----
+(ns main
+  (:require [conjtest.core :as conjtest]
+            [pod-ilmoraunio-conjtest.api :as parser]
+            [policy]))
+
+(defn test
+  [& args]
+  (let [inputs (apply parser/parse args)]
+    (let [{:keys [summary-report failure-report]}
+          (conjtest/test inputs 'policy)]
+      (cond
+        failure-report (do (println failure-report) (System/exit 1))
+        summary-report (do (println summary-report) (System/exit 0))))))
+----
+
+Running this against an EDN configuration file,
+https://github.com/ilmoraunio/conjtest/blob/main/demo/external_use/sample_config.edn[`sample_config.edn`],
+using the following
+https://github.com/ilmoraunio/conjtest/blob/main/demo/external_use/policy.clj[policy]
+gives you the output below.
+
+[source,bash]
+----
+$ bb test sample_config.edn
+FAIL - sample_config.edn - deny-incorrect-log-level-production - Applications in the production environment should have error only logging
+
+2 tests, 1 passed, 0 warnings, 1 failures
+
+$ echo $?
+1
+----
