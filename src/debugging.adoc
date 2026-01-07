@@ -94,6 +94,8 @@ This allows you to develop your policy within the SCI sandbox.
 ----
 $ clj -Sdeps '{:deps {nrepl/nrepl {:mvn/version "0.5.3"}}}' -m nrepl.cmdline -c --host 127.0.0.1 --port 1667
 ...
+user=> (require '[conjtest.core :as conjtest])
+nil
 user=> (require '[pod-ilmoraunio-conjtest.api :as api])
 nil
 user=> (defn deny-my-policy
@@ -108,9 +110,9 @@ user=> (deny-my-policy (update (first (vals (api/parse "deps.edn")))
                                conj
                                "evil-dir"))
 "evil-dir found!"
-user=> (conjtest/test! [(update (first (vals (api/parse "deps.edn")))
-                                :paths
-                                conj
-                                "evil-dir")] #'deny-my-policy)
-{:summary {:total 1, :passed 0, :warnings 0, :failures 1}, :summary-report "1 tests, 0 passed, 0 warnings, 1 failures\n", :result ({:message "evil-dir found!", :name "deny-my-policy", :rule-type :deny, :failure? true})}
+user=> (conjtest/test [(update (first (vals (api/parse "deps.edn")))
+                               :paths
+                               conj
+                               "evil-dir")] #'deny-my-policy)
+{:summary {:total 1, :passed 0, :warnings 0, :failures 1}, :failure-report "FAIL - null - deny-my-policy - evil-dir found!\n\n1 tests, 0 passed, 0 warnings, 1 failures\n", :result ({:message "evil-dir found!", :name "deny-my-policy", :rule-type :deny, :failure? true})}
 ----
